@@ -1,0 +1,1 @@
+2024-08-21T14:05:32.784683Z  INFO request{method=GET uri=/ version=HTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
