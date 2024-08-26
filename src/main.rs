@@ -1,6 +1,6 @@
-use axum::{routing::get, Router};
+use axum::{response::Html, routing::get, Router};
 use tower_http::trace::{self, TraceLayer};
-use tracing::Level;
+use tracing::{info, Level};
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -11,6 +11,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         // Use a more compact, abbreviated log format
         .compact()
+        // Display source code file paths
+        // .with_file(true)
         //.json()
         // Don't display the event's target (module path)
         .with_target(false)
@@ -38,16 +40,25 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // * INFO: Build our new Router
     let app: axum::Router<()> = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
+        .route("/demo.html", get(get_demo_html))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
         );
 
+    // ______________________________________________________________________
+    /// axum handler for "GET /demo.html" which responds with HTML text.
+    /// The `Html` type sets an HTTP header content-type of `text/html`.
+    async fn get_demo_html() -> Html<&'static str> {
+        "<h1>Hello!</h1>".into()
+    }
+
     // * INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
         .await
         .unwrap();
+    info!("Listening on http://127.0.0.1:3001");
 
     axum::serve(listener, app.into_make_service())
         .await
