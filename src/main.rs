@@ -41,6 +41,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app: axum::Router<()> = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/demo.html", get(get_demo_html))
+        .route("/hello.html", get(hello_html))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -52,6 +53,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// The `Html` type sets an HTTP header content-type of `text/html`.
     async fn get_demo_html() -> Html<&'static str> {
         "<h1>Hello!</h1>".into()
+    }
+
+    /// axum handler that responds with typical HTML coming from a file.
+    /// This uses the Rust macro `std::include_str` to include a UTF-8 file
+    /// path, relative to `main.rs`, as a `&'static str` at compile time.
+    async fn hello_html() -> Html<&'static str> {
+        include_str!("./hello.html").into()
     }
 
     // * INFO: Run our application as a hyper server on http://localhost:3001
