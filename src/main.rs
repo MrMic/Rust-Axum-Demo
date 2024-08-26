@@ -1,4 +1,4 @@
-use axum::{response::Html, routing::get, Router};
+use axum::{http::StatusCode, response::Html, routing::get, Router};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
@@ -42,6 +42,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/", get(|| async { "Hello, World!" }))
         .route("/demo.html", get(get_demo_html))
         .route("/hello.html", get(hello_html))
+        .route("/demo-status", get(demo_status))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -51,15 +52,23 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ______________________________________________________________________
     /// axum handler for "GET /demo.html" which responds with HTML text.
     /// The `Html` type sets an HTTP header content-type of `text/html`.
-    async fn get_demo_html() -> Html<&'static str> {
+    pub async fn get_demo_html() -> Html<&'static str> {
         "<h1>Hello!</h1>".into()
     }
 
+    // ______________________________________________________________________
     /// axum handler that responds with typical HTML coming from a file.
     /// This uses the Rust macro `std::include_str` to include a UTF-8 file
     /// path, relative to `main.rs`, as a `&'static str` at compile time.
-    async fn hello_html() -> Html<&'static str> {
+    pub async fn hello_html() -> Html<&'static str> {
         include_str!("./hello.html").into()
+    }
+
+    // ______________________________________________________________________
+    /// axum handler for "GET /demo-status" which returns a HTTP status
+    /// code, such as OK (200), and a custom user-visible string message.
+    pub async fn demo_status() -> (StatusCode, String) {
+        (StatusCode::OK, "Everything is OK".to_string())
     }
 
     // * INFO: Run our application as a hyper server on http://localhost:3001
