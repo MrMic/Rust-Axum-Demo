@@ -19,7 +19,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // GET Request to HTML
     let res = hc.do_get("/hello.html").await?;
-    // let _status = res.status();
+    res.print().await?;
+
+    // GET Request to HTML
+    let res = hc.do_get("/demo-status").await?;
     res.print().await?;
 
     Ok(())
