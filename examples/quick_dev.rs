@@ -25,5 +25,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let res = hc.do_get("/demo-status").await?;
     res.print().await?;
 
+    // GET Request to HTML
+    let res = hc.do_get("/demo-uri").await?;
+    res.print().await?;
+
+    // PNG image
+    let res = hc.do_get("/demo.png").await?;
+    res.print().await?;
+
     Ok(())
 }
