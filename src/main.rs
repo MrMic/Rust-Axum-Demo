@@ -1,4 +1,11 @@
-use axum::{http::StatusCode, response::Html, routing::get, Router};
+use axum::{
+    http::{header::CONTENT_TYPE, StatusCode, Uri},
+    response::{AppendHeaders, Html, IntoResponse},
+    routing::get,
+    Router,
+};
+
+use base64::{engine::general_purpose, Engine};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
@@ -43,6 +50,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/demo.html", get(get_demo_html))
         .route("/hello.html", get(hello_html))
         .route("/demo-status", get(demo_status))
+        .route("/demo-uri", get(demo_uri))
+        .route("/demo.png", get(get_demo_png))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -71,7 +80,29 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         (StatusCode::OK, "Everything is OK".to_string())
     }
 
-    // * INFO: Run our application as a hyper server on http://localhost:3001
+    // ______________________________________________________________________
+    /// axum handler for "GET /demo-uri" which shows the request's own URI.
+    /// This shows how to write a handler that receives the URI.
+    pub async fn demo_uri(uri: Uri) -> String {
+        format!("The URI is: {:?}", uri)
+    }
+
+    /// axum handler for "GET /demo.png" which responds with an image PNG.
+    /// This sets a header "image/png" then sends the decoded image data.
+    async fn get_demo_png() -> impl IntoResponse {
+        let png = concat!(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB",
+            "CAYAAAAfFcSJAAAADUlEQVR42mPk+89Q",
+            "DwADvgGOSHzRgAAAAABJRU5ErkJggg=="
+        );
+        (
+            ([(CONTENT_TYPE, "image/png")]),
+            AppendHeaders([(CONTENT_TYPE, "image/png")]),
+            general_purpose::STANDARD.decode(png).unwrap(),
+        )
+    }
+
+    // ! INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
         .await
         .unwrap();
