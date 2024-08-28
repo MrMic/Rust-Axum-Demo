@@ -52,6 +52,14 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/demo-status", get(demo_status))
         .route("/demo-uri", get(demo_uri))
         .route("/demo.png", get(get_demo_png))
+        .route(
+            "/foo",
+            get(get_foo)
+                .put(put_foo)
+                .patch(patch_foo)
+                .post(post_foo)
+                .delete(delete_foo),
+        )
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -102,6 +110,34 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     }
 
+    // ______________________________________________________________________
+    /// axum handler for "GET /foo" which returns a string message.
+    /// This shows our naming convention for HTTP GET handlers.
+    pub async fn get_foo() -> String {
+        "GET foo".to_string()
+    }
+    /// axum handler for "PUT /foo" which returns a string message.
+    /// This shows our naming convention for HTTP PUT handlers.
+    pub async fn put_foo() -> String {
+        "PUT foo".to_string()
+    }
+    /// axum handler for "PATCH /foo" which returns a string message.
+    /// This shows our naming convention for HTTP PATCH handlers.
+    pub async fn patch_foo() -> String {
+        "PATCH foo".to_string()
+    }
+    /// axum handler for "POST /foo" which returns a string message.
+    /// This shows our naming convention for HTTP POST handlers.
+    pub async fn post_foo() -> String {
+        "POST foo".to_string()
+    }
+    /// axum handler for "DELETE /foo" which returns a string message.
+    /// This shows our naming convention for HTTP DELETE handlers.
+    pub async fn delete_foo() -> String {
+        "DELETE foo".to_string()
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     // ! INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
         .await
