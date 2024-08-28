@@ -55,6 +55,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let res = hc.do_delete("/foo").await?;
     res.print().await?;
 
+    //______________________________________________________________________
+    // GET id
+    let res = hc.do_get("/items/1").await?;
+    res.print().await?;
+
     // ______________________________________________________________________
     Ok(())
 }

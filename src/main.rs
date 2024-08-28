@@ -1,4 +1,5 @@
 use axum::{
+    extract::Path,
     http::{header::CONTENT_TYPE, StatusCode, Uri},
     response::{AppendHeaders, Html, IntoResponse},
     routing::get,
@@ -60,6 +61,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .post(post_foo)
                 .delete(delete_foo),
         )
+        .route("/items/:id", get(get_items_id))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -135,6 +137,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// This shows our naming convention for HTTP DELETE handlers.
     pub async fn delete_foo() -> String {
         "DELETE foo".to_string()
+    }
+
+    // ______________________________________________________________________
+    /// axum handler for "GET /items/:id" which returns a string message.
+    /// This extract a path parameter the deserialize it as needed.
+    pub async fn get_items_id(Path(id): Path<String>) -> String {
+        format!("Get items with path id:  {:?}", id)
     }
 
     // ══════════════════════════════════════════════════════════════════════
