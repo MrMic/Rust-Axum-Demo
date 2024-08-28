@@ -12,26 +12,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Pretty print the result (status, headers, response cookies, client cookies, body)
     res.print().await?;
 
+    // ______________________________________________________________________
     // GET Request to HTML
     let res = hc.do_get("/demo.html").await?;
     // let _status = res.status();
     res.print().await?;
 
+    // ______________________________________________________________________
     // GET Request to HTML
     let res = hc.do_get("/hello.html").await?;
     res.print().await?;
 
+    // ______________________________________________________________________
     // GET Request to HTML
     let res = hc.do_get("/demo-status").await?;
     res.print().await?;
 
+    // ______________________________________________________________________
     // GET Request to HTML
     let res = hc.do_get("/demo-uri").await?;
     res.print().await?;
 
+    // ______________________________________________________________________
     // PNG image
     let res = hc.do_get("/demo.png").await?;
     res.print().await?;
 
+    // ______________________________________________________________________
+    // GET "/foo"
+    let res = hc.do_get("/foo").await?;
+    res.print().await?;
+    // PUT "/foo"
+    let res = hc.do_put("/foo", "").await?;
+    res.print().await?;
+    // PATCH "/foo"
+    let res = hc.do_patch("/foo", "").await?;
+    res.print().await?;
+    // POST "/foo"
+    let res = hc.do_post("/foo", "").await?;
+    res.print().await?;
+    // DELETE "/foo"
+    let res = hc.do_delete("/foo").await?;
+    res.print().await?;
+
+    // ______________________________________________________________________
     Ok(())
 }
