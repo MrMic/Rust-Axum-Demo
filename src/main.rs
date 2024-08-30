@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query},
+    extract::{Json, Path, Query},
     http::{header::CONTENT_TYPE, StatusCode, Uri},
     response::{AppendHeaders, Html, IntoResponse},
     routing::get,
@@ -9,6 +9,7 @@ use axum::{
 };
 
 use base64::{engine::general_purpose, Engine};
+use serde_json::{json, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
@@ -65,6 +66,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .route("/items/:id", get(get_items_id))
         .route("/items", get(get_items))
+        .route("/demo.json", get(get_demo_json))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -154,6 +156,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         format!("Get items with  query params: {:?}", params)
     }
 
+    // ______________________________________________________________________
+    /// axum handler for "PUT /demo.json" which uses `aumx::extract::Json`.
+    /// This buffers the request body then deserializes it bu using serde.
+    /// The `Json` type supports types that implement `serde::Deserialize`.
+    pub async fn get_demo_json() -> Json<Value> {
+        json!({ "a": "b"}).into()
+    }
     // ══════════════════════════════════════════════════════════════════════
     // ! INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")

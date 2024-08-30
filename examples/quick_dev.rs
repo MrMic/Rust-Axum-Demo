@@ -65,6 +65,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let res = hc.do_get("/items?a=b").await?;
     res.print().await?;
 
+    //______________________________________________________________________
+    // GET Json
+    let res = hc.do_get("/demo.json").await?;
+    res.print().await?;
+
     // ______________________________________________________________________
     Ok(())
 }
