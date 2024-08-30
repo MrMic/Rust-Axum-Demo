@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use axum::{
-    extract::Path,
+    extract::{Path, Query},
     http::{header::CONTENT_TYPE, StatusCode, Uri},
     response::{AppendHeaders, Html, IntoResponse},
     routing::get,
@@ -62,6 +64,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .delete(delete_foo),
         )
         .route("/items/:id", get(get_items_id))
+        .route("/items", get(get_items))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -144,6 +147,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// This extract a path parameter the deserialize it as needed.
     pub async fn get_items_id(Path(id): Path<String>) -> String {
         format!("Get items with path id:  {:?}", id)
+    }
+
+    // ______________________________________________________________________
+    pub async fn get_items(Query(params): Query<HashMap<String, String>>) -> String {
+        format!("Get items with  query params: {:?}", params)
     }
 
     // ══════════════════════════════════════════════════════════════════════
