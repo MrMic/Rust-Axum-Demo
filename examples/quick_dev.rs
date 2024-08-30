@@ -1,3 +1,5 @@
+use serde_json::json;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a new httpc test client with a base URL (will be prefixed for all calls)
@@ -68,6 +70,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //______________________________________________________________________
     // GET Json
     let res = hc.do_get("/demo.json").await?;
+    res.print().await?;
+
+    //______________________________________________________________________
+    // PUT Json
+    let res = hc.do_put("/demo.json", json!({"hello": "world"})).await?;
     res.print().await?;
 
     // ______________________________________________________________________
