@@ -66,7 +66,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .route("/items/:id", get(get_items_id))
         .route("/items", get(get_items))
-        .route("/demo.json", get(get_demo_json))
+        .route("/demo.json", get(get_demo_json).put(put_demo_json))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -163,6 +163,15 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pub async fn get_demo_json() -> Json<Value> {
         json!({ "a": "b"}).into()
     }
+
+    // ______________________________________________________________________
+    /// axum handler for "PUT /demo.json" which uses `aumx::extract::Json`.
+    /// This buffers the request body then deserializes it using serde.
+    /// The `Json` type supports types that implement `serde::Deserialize`.
+    pub async fn put_demo_json(Json(data): Json<Value>) -> String {
+        format!("PUT demo JSON data: {:?}", data)
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // ! INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
