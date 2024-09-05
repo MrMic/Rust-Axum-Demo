@@ -13,6 +13,8 @@ use serde_json::{json, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
+mod book;
+
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // construct a subscriber that prints formatted traces to stdout
