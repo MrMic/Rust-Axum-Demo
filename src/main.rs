@@ -14,6 +14,7 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
 mod book;
+mod data;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
