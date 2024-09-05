@@ -254,6 +254,7 @@ dependencies = [
  "http",
  "httpc-test",
  "hyper",
+ "once_cell",
  "serde",
  "serde_json",
  "tokio",
