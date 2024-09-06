@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use axum::{
     extract::{Json, Path, Query},
     http::{header::CONTENT_TYPE, StatusCode, Uri},
@@ -7,6 +5,7 @@ use axum::{
     routing::get,
     Router,
 };
+use std::{collections::HashMap, thread};
 
 use base64::{engine::general_purpose, Engine};
 use serde_json::{json, Value};
@@ -16,8 +15,21 @@ use tracing::{info, Level};
 mod book;
 mod data;
 
+/// To access data, create a thread, spawn it, then get the lock.
+/// When you're done, then join the thread with its parent thread.
+async fn print_data() {
+    thread::spawn(move || {
+        let data = data::DATA.lock().unwrap();
+        println!("data {:?}", data);
+    })
+    .join()
+    .unwrap();
+}
+
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // print_data().await;
+
     // construct a subscriber that prints formatted traces to stdout
     // let subscriber = tracing_subscriber::FmtSubscriber::new();
 
