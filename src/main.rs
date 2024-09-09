@@ -89,6 +89,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/items", get(get_items))
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
         .route("/books", get(get_books))
+        .route("/book/:id", get(get_book_id))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -194,7 +195,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         format!("PUT demo JSON data: {:?}", data)
     }
 
-    // ______________________________________________________________________
+    // _____________________________________________________________________
     /// axum handler for "GET /books" which responds with a resource page.
     /// This demo uses our DATA; a production app could use a database.
     /// This demo must clone the DATA in order to sort items by title.
@@ -215,6 +216,30 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into()
     }
 
+    // _____________________________________________________________________
+    /// axum handler for "GET /books/:id" which responds with one resource Html
+    /// This demo app uses our DATA variable, and iterates on it to find the i
+    /// th book. This demo must clone the DATA in order to sort items by title.
+    pub async fn get_book_id(Path(id): Path<u32>) -> axum::response::Html<String> {
+        thread::spawn(move || {
+            let data = DATA.lock().unwrap();
+            match data.get(&id) {
+                Some(book) => {
+                    let mut result = String::new();
+                    writeln!(result, "<p>{}</p>", book).unwrap();
+                    result
+                }
+                None => {
+                    let mut result = String::new();
+                    writeln!(result, "<p>Book not found</p>").unwrap();
+                    result
+                }
+            }
+        })
+        .join()
+        .unwrap()
+        .into()
+    }
     // ══════════════════════════════════════════════════════════════════════
     // ! INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
