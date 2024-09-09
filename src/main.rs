@@ -1,3 +1,6 @@
+use std::fmt::Write;
+use std::{collections::HashMap, thread};
+
 use axum::{
     extract::{Json, Path, Query},
     http::{header::CONTENT_TYPE, StatusCode, Uri},
@@ -5,7 +8,8 @@ use axum::{
     routing::get,
     Router,
 };
-use std::{collections::HashMap, thread};
+
+use tracing_subscriber::fmt::format;
 
 use base64::{engine::general_purpose, Engine};
 use serde_json::{json, Value};
@@ -13,18 +17,20 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
 
 mod book;
+use crate::book::Book;
 mod data;
+use data::DATA;
 
 /// To access data, create a thread, spawn it, then get the lock.
 /// When you're done, then join the thread with its parent thread.
-async fn print_data() {
-    thread::spawn(move || {
-        let data = data::DATA.lock().unwrap();
-        println!("data {:?}", data);
-    })
-    .join()
-    .unwrap();
-}
+// async fn print_data() {
+//     thread::spawn(move || {
+//         let data = data::DATA.lock().unwrap();
+//         println!("data {:?}", data);
+//     })
+//     .join()
+//     .unwrap();
+// }
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,6 +88,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/items/:id", get(get_items_id))
         .route("/items", get(get_items))
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
+        .route("/books", get(get_books))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -185,6 +192,27 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// The `Json` type supports types that implement `serde::Deserialize`.
     pub async fn put_demo_json(Json(data): Json<Value>) -> String {
         format!("PUT demo JSON data: {:?}", data)
+    }
+
+    // ______________________________________________________________________
+    /// axum handler for "GET /books" which responds with a resource page.
+    /// This demo uses our DATA; a production app could use a database.
+    /// This demo must clone the DATA in order to sort items by title.
+    pub async fn get_books() -> axum::response::Html<String> {
+        thread::spawn(move || {
+            let data = DATA.lock().unwrap();
+            let mut books = data.values().collect::<Vec<_>>().clone();
+            books.sort_by(|a, b| a.title.cmp(&b.title));
+
+            let mut result = String::new();
+            books.iter().for_each(|&book| {
+                writeln!(result, "<p>{}</p>", book).unwrap();
+            });
+            result
+        })
+        .join()
+        .unwrap()
+        .into()
     }
 
     // ══════════════════════════════════════════════════════════════════════
