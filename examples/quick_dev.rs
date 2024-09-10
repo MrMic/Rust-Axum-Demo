@@ -87,6 +87,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let res = hc.do_get("/book/1").await?;
     res.print().await?;
 
+    //______________________________________________________________________
+    // PUT book 1
+    let res = hc
+        .do_put(
+            "/books",
+            json!({
+                "id": 4,
+                "title": "Decameron",
+                "author": "Giovanni Boccaccio"
+            }),
+        )
+        .await?;
+    res.print().await?;
+
     // ______________________________________________________________________
     Ok(())
 }
