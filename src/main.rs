@@ -9,7 +9,7 @@ use axum::{
     Router,
 };
 
-use tracing_subscriber::fmt::format;
+// use tracing_subscriber::fmt::format;
 
 use base64::{engine::general_purpose, Engine};
 use serde_json::{json, Value};
@@ -88,7 +88,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/items/:id", get(get_items_id))
         .route("/items", get(get_items))
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
-        .route("/books", get(get_books))
+        .route("/books", get(get_books).put(put_book))
         .route("/book/:id", get(get_book_id))
         .layer(
             TraceLayer::new_for_http()
@@ -240,8 +240,28 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap()
         .into()
     }
+
+    // _____________________________________________________________________
+    /// axum handler for "PUT /books" which creates a new book resource.
+    /// This demo shows how axum can extract JSON data into a Book struct.
+    pub async fn put_book(
+        axum::extract::Json(book): axum::extract::Json<Book>,
+    ) -> axum::response::Html<String> {
+        thread::spawn(move || {
+            let mut data = DATA.lock().unwrap();
+            data.insert(book.id, book.clone());
+
+            let mut result = String::new();
+            writeln!(result, "PUT book: {}", book).unwrap();
+            result
+        })
+        .join()
+        .unwrap()
+        .into()
+    }
+
     // ══════════════════════════════════════════════════════════════════════
-    // ! INFO: Run our application as a hyper server on http://localhost:3001
+    // * INFO: Run our application as a hyper server on http://localhost:3001
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
         .await
         .unwrap();
