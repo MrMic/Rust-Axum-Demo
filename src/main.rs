@@ -90,6 +90,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
         .route("/books", get(get_books).put(put_book))
         .route("/book/:id", get(get_book_id))
+        .route("/books/:id/form", get(get_books_id_form))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -245,7 +246,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// axum handler for "PUT /books" which creates a new book resource.
     /// This demo shows how axum can extract JSON data into a Book struct.
     pub async fn put_book(
-        axum::extract::Json(book): axum::extract::Json<Book>,
+        Json(book): Json<Book>,
     ) -> axum::response::Html<String> {
         thread::spawn(move || {
             let mut data = DATA.lock().unwrap();
@@ -254,6 +255,32 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut result = String::new();
             writeln!(result, "PUT book: {}", book).unwrap();
             result
+        })
+        .join()
+        .unwrap()
+        .into()
+    }
+
+    // _____________________________________________________________________
+    /// axum handler for "GET /books/:id/form" which responds with a form.
+    /// This demo shows how to write a typical HTML form with input fields.
+    pub async fn get_books_id_form(Path(id): Path<u32>) -> axum::response::Html<String> {
+        thread::spawn(move || {
+            let data = DATA.lock().unwrap();
+            match data.get(&id) {
+                Some(book) => format!(
+                    concat!(
+                        "<form method=\"post\" action=\"/books/{}/form\">\n",
+                        "<input type=\"hidden\" name=\"id\" value=\"{}\">\n",
+                        "<p><input name=\"title\" value=\"{}\"></p>\n",
+                        "<p><input name=\"author\" value=\"{}\"></p>\n",
+                        "<input type=\"submit\" value=\"Save\">\n",
+                        "</form>\n"
+                    ),
+                    &book.id, &book.id, &book.title, &book.author
+                ),
+                None => format!("<p>Book id {} not found</p>", id),
+            }
         })
         .join()
         .unwrap()
