@@ -88,7 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     res.print().await?;
 
     //______________________________________________________________________
-    // PUT book 1
+    // PUT book 4
     let res = hc
         .do_put(
             "/books",
@@ -105,6 +105,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // GET book 1
     let res = hc.do_get("/books/1/form").await?;
     res.print().await?;
+
+    //______________________________________________________________________
+    // POST book 4
+    /*
+    let res = hc
+        .do_post(
+            "/books/1/form",
+            (
+                r#"{
+                    "id": 4,
+                    "title": "Another Title",
+                    "author": " Someone Else"
+                }
+                "#,
+                "application/x-www-form-urlencoded",
+            ),
+        )
+        .await?;
+    res.print().await?;
+    */
 
     // ______________________________________________________________________
     Ok(())
