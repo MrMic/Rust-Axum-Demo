@@ -90,7 +90,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
         .route("/books", get(get_books).put(put_book))
         .route("/book/:id", get(get_book_id))
-        .route("/books/:id/form", get(get_books_id_form))
+        .route(
+            "/books/:id/form",
+            get(get_books_id_form).post(post_book_id_form),
+        )
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -245,9 +248,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // _____________________________________________________________________
     /// axum handler for "PUT /books" which creates a new book resource.
     /// This demo shows how axum can extract JSON data into a Book struct.
-    pub async fn put_book(
-        Json(book): Json<Book>,
-    ) -> axum::response::Html<String> {
+    pub async fn put_book(Json(book): Json<Book>) -> axum::response::Html<String> {
         thread::spawn(move || {
             let mut data = DATA.lock().unwrap();
             data.insert(book.id, book.clone());
@@ -280,6 +281,25 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     &book.id, &book.id, &book.title, &book.author
                 ),
                 None => format!("<p>Book id {} not found</p>", id),
+            }
+        })
+        .join()
+        .unwrap()
+        .into()
+    }
+
+    // _____________________________________________________________________
+    /// axum handler for "POST /books/:id/form" which submits an HTML form.
+    /// This demo shows how to do a form submission then update a resource.
+    pub async fn post_book_id_form(form: axum::extract::Form<Book>) -> Html<String> {
+        let new_book: Book = form.0;
+        thread::spawn(move || {
+            let mut data = DATA.lock().unwrap();
+            if data.contains_key(&new_book.id) {
+                data.insert(new_book.id, new_book.clone());
+                format!("<p>{}</p>\n", &new_book)
+            } else {
+                format!("Book id not found: {}", &new_book.id)
             }
         })
         .join()
