@@ -16,6 +16,7 @@ use base64::{engine::general_purpose, Engine};
 use serde_json::{json, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{info, Level};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod book;
 use crate::book::Book;
@@ -41,23 +42,22 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let subscriber = tracing_subscriber::FmtSubscriber::new();
 
     // * INFO:  Start configuring a `fmt` subscriber
-    tracing_subscriber::fmt()
-        // Use a more compact, abbreviated log format
-        .compact()
-        // Display source code file paths
-        // .with_file(true)
-        //.json()
-        // Don't display the event's target (module path)
-        .with_target(false)
-        // Build the subscriber
-        .init();
+    // tracing_subscriber::fmt()
+    // Use a more compact, abbreviated log format
+    // .compact()
+    // Display source code file paths
+    // .with_file(true)
+    //.json()
+    // Don't display the event's target (module path)
+    // .with_target(false)
+    // Build the subscriber
+    // .init();
 
     // * INFO:  Start configuring a `Registry` subscriber
-    /*
+    // Start Tracing.
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .init();
-    */
 
     // * INFO:  Start configuring a `appender` subscriber
     /*
