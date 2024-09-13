@@ -126,6 +126,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     res.print().await?;
     */
 
+    //______________________________________________________________________
+    // DELETE book 1
+    let res = hc.do_delete("/book/1").await?;
+    res.print().await?;
+    let res = hc.do_get("/books").await?;
+    res.print().await?;
+
     // ______________________________________________________________________
     Ok(())
 }

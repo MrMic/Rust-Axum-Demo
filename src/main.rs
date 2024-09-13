@@ -1,3 +1,4 @@
+use std::collections::hash_map;
 use std::fmt::Write;
 use std::{collections::HashMap, thread};
 
@@ -89,7 +90,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/items", get(get_items))
         .route("/demo.json", get(get_demo_json).put(put_demo_json))
         .route("/books", get(get_books).put(put_book))
-        .route("/book/:id", get(get_book_id))
+        .route("/book/:id", get(get_book_id).delete(delete_book_id))
         .route(
             "/books/:id/form",
             get(get_books_id_form).post(post_book_id_form),
@@ -295,12 +296,32 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let new_book: Book = form.0;
         thread::spawn(move || {
             let mut data = DATA.lock().unwrap();
-            if data.contains_key(&new_book.id) {
-                data.insert(new_book.id, new_book.clone());
+            if let hash_map::Entry::Occupied(mut entry) = data.entry(new_book.id) {
+                entry.insert(new_book.clone());
                 format!("<p>{}</p>\n", &new_book)
             } else {
                 format!("Book id not found: {}", &new_book.id)
             }
+
+            // if data.contains_key(&new_book.id) {
+            //     data.insert(new_book.id, new_book.clone());
+            //     format!("<p>{}</p>\n", &new_book)
+            // } else {
+            //     format!("Book id not found: {}", &new_book.id)
+            // }
+        })
+        .join()
+        .unwrap()
+        .into()
+    }
+
+    // _____________________________________________________________________
+    /// axum handler for "DELETE /books/:id" which deletes a resource.
+    pub async fn delete_book_id(Path(id): Path<u32>) -> Html<String> {
+        thread::spawn(move || {
+            let mut data = DATA.lock().unwrap();
+            data.remove(&id);
+            format!("<p>Book id {} deleted</p>", id)
         })
         .join()
         .unwrap()
